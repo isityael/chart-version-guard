@@ -41,7 +41,7 @@ chart-version-guard bump --ci woodpecker --repo . --write
 
 ## CI Image
 
-Woodpecker publishes `ghcr.io/yaelmoshi/chart-version-guard` from this repository's `.woodpecker/release.yaml` pipeline.
+Woodpecker publishes `ghcr.io/isityael/chart-version-guard` from this repository's `.woodpecker/release.yaml` pipeline.
 
 ## Repository
 
@@ -51,4 +51,4 @@ Forgejo is the source of truth:
 
 GitHub is maintained as a public push mirror:
 
-- `https://github.com/yaelmoshi/chart-version-guard`
+- `https://github.com/isityael/chart-version-guard`
