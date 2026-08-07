@@ -5,7 +5,7 @@ when:
 
 steps:
   - name: go-test
-    image: dhi.io/golang:1.26.5-debian13-dev@sha256:ea95ee7168f2d7728a649cc4a7c9cf7c403f903f6558a21b1c8cdca9946d7c29
+    image: dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de
     environment:
       DHI_USERNAME:
         from_secret: dhi_username
