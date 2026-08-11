@@ -1,7 +1,6 @@
 when:
-  - event: manual
-  - event: push
-    branch: main
+  - event: tag
+    ref: refs/tags/v*-ym.*
 
 steps:
   - name: build-and-push-ghcr
@@ -15,6 +14,7 @@ steps:
       tags:
         - "${CI_COMMIT_SHA:0:8}"
         - main
+        - "${CI_COMMIT_TAG}"
       logins:
         - registry: ghcr.io
           username:
