@@ -1,4 +1,4 @@
-FROM dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de AS build
+FROM dhi.io/golang:1.26.6-debian13-dev@sha256:08ff7030d9e3aa25230a57f6437e83ffe33995b9c88b0dfcab4f076ad3cc8f6c AS build
 
 WORKDIR /src
 COPY go.mod go.sum ./
@@ -6,6 +6,6 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/chart-version-guard ./cmd/chart-version-guard
 
-FROM dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de
+FROM dhi.io/golang:1.26.6-debian13-dev@sha256:08ff7030d9e3aa25230a57f6437e83ffe33995b9c88b0dfcab4f076ad3cc8f6c
 
 COPY --from=build /out/chart-version-guard /usr/local/bin/chart-version-guard

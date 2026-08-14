@@ -21,7 +21,7 @@ steps:
       mount: [.go-mod-cache]
 
   - name: go-test
-    image: dhi.io/golang:1.26.5-debian13-dev@sha256:4f8306e798384952c56c754db2ef72f075413a73a0bcf512890fe43d58f315de
+    image: dhi.io/golang:1.26.6-debian13-dev@sha256:08ff7030d9e3aa25230a57f6437e83ffe33995b9c88b0dfcab4f076ad3cc8f6c
     environment:
       DHI_USERNAME:
         from_secret: dhi_username
