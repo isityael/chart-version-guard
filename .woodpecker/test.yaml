@@ -5,7 +5,7 @@ when:
 
 steps:
   - name: restore-go-cache
-    image: plugins/cache:1.10@sha256:d7fc21469c57b60320157831fc4703d4f1a4bc3c6b136129cf47f19e60570353
+    image: plugins/cache:1.10@sha256:35586c9bbbf82fd142216a037fd1f7f43f1cb09b21fb9f4bf491ddd7ea210ae0
     failure: ignore
     settings:
       access_key: {from_secret: garage_s3_access_key}
@@ -21,7 +21,7 @@ steps:
       mount: [.go-mod-cache]
 
   - name: go-test
-    image: dhi.io/golang:1.27.1-debian13-dev@sha256:ce4e3984089cc0429a487c42427c6c43331b5b4eac6a58d517afc2e7cb53dc08
+    image: dhi.io/golang:1.27.1-debian13-dev@sha256:baa8e6b0fe23dcfdcaec24af47e091660ba539685fe8340d0f5172227afadaf8
     environment:
       DHI_USERNAME:
         from_secret: dhi_username
@@ -36,7 +36,7 @@ steps:
       - test -z "$(gofmt -l .)"
 
   - name: rebuild-go-cache
-    image: plugins/cache:1.10@sha256:d7fc21469c57b60320157831fc4703d4f1a4bc3c6b136129cf47f19e60570353
+    image: plugins/cache:1.10@sha256:35586c9bbbf82fd142216a037fd1f7f43f1cb09b21fb9f4bf491ddd7ea210ae0
     failure: ignore
     when:
       - event: push
