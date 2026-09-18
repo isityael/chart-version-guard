@@ -126,3 +126,31 @@ func runGit(t *testing.T, repo string, args ...string) string {
 	}
 	return strings.TrimSpace(string(out))
 }
+
+func TestCheckCommandAcceptsRepeatedIgnore(t *testing.T) {
+	repo := newGitRepo(t)
+	writeFile(t, repo, "charts/latest/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: v0.0.0\n")
+	writeFile(t, repo, "charts/latest/app/values.yaml", "enabled: true\n")
+	writeFile(t, repo, "charts/v1.0.0/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: 1.0.0\n")
+	writeFile(t, repo, "charts/v1.0.0/app/values.yaml", "enabled: true\n")
+	commitAll(t, repo, "initial")
+	base := gitRev(t, repo, "HEAD")
+	writeFile(t, repo, "charts/latest/app/values.yaml", "enabled: false\n")
+	writeFile(t, repo, "charts/v1.0.0/app/values.yaml", "enabled: false\n")
+	commitAll(t, repo, "values change")
+
+	var stdout, stderr bytes.Buffer
+	args := []string{"check", "--repo", repo, "--base", base, "--head", "HEAD", "--ignore", "charts/latest/*", "--ignore", "charts/v*/**"}
+	if code := Run(t.Context(), args, nil, &stdout, &stderr); code != 0 {
+		t.Fatalf("exit code = %d, want 0; stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+
+	stdout.Reset()
+	args = []string{"check", "--repo", repo, "--base", base, "--head", "HEAD", "--ignore", "charts/latest/*"}
+	if code := Run(t.Context(), args, nil, &stdout, &stderr); code != 1 {
+		t.Fatalf("exit code = %d, want 1 when only latest is ignored; stdout=%q", code, stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "charts/v1.0.0/app") || strings.Contains(stdout.String(), "charts/latest/app") {
+		t.Fatalf("unexpected failures: %q", stdout.String())
+	}
+}

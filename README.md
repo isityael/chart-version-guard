@@ -30,10 +30,19 @@ Patch-bump missing chart versions from Woodpecker:
 chart-version-guard bump --ci woodpecker --repo . --write
 ```
 
+Skip chart roots that the repository does not release, such as upstream
+copies in a fork (repeatable; `path.Match` globs, and a trailing `/**`
+matches the whole subtree):
+
+```sh
+chart-version-guard check --ci woodpecker --repo . --ignore 'charts/**'
+```
+
 ## Rules
 
 - Chart roots are discovered by `Chart.yaml`.
 - Vendored dependency charts under a chart's `charts/` directory are ignored.
+- Charts matching an `--ignore` pattern are skipped, and their files are not attributed to a parent chart.
 - Dependency version changes inside `Chart.yaml` do not satisfy or require a chart version bump.
 - New charts pass when their new `Chart.yaml` has a top-level `version`.
 - Deleted charts pass.
