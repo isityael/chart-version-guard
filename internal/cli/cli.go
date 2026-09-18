@@ -15,6 +15,16 @@ import (
 
 type getenvFunc func(string) string
 
+// stringList collects a repeatable string flag.
+type stringList []string
+
+func (l *stringList) String() string { return strings.Join(*l, ",") }
+
+func (l *stringList) Set(value string) error {
+	*l = append(*l, value)
+	return nil
+}
+
 func Run(ctx context.Context, args []string, getenv getenvFunc, stdout, stderr io.Writer) int {
 	if getenv == nil {
 		getenv = os.Getenv
@@ -45,6 +55,7 @@ func runCheck(ctx context.Context, args []string, getenv getenvFunc, stdout, std
 	fs.StringVar(&opts.Repo, "repo", ".", "repository path")
 	fs.StringVar(&opts.Base, "base", "", "base git ref")
 	fs.StringVar(&opts.Head, "head", "HEAD", "head git ref")
+	fs.Var((*stringList)(&opts.Ignore), "ignore", "chart root glob to skip, repeatable (e.g. charts/v*, vendor-charts/**)")
 	fs.StringVar(&ci, "ci", "", "CI environment resolver, supported: woodpecker")
 	fs.StringVar(&format, "format", "text", "output format: text or json")
 	fs.BoolVar(&staged, "staged", false, "compare HEAD against the staged index")
@@ -96,6 +107,7 @@ func runBump(ctx context.Context, args []string, getenv getenvFunc, stdout, stde
 	fs.StringVar(&opts.Repo, "repo", ".", "repository path")
 	fs.StringVar(&opts.Base, "base", "", "base git ref")
 	fs.StringVar(&opts.Head, "head", "HEAD", "head git ref")
+	fs.Var((*stringList)(&opts.Ignore), "ignore", "chart root glob to skip, repeatable (e.g. charts/v*, vendor-charts/**)")
 	fs.StringVar(&ci, "ci", "", "CI environment resolver, supported: woodpecker")
 	fs.BoolVar(&write, "write", false, "write patch bumps to Chart.yaml files")
 	if err := fs.Parse(args); err != nil {

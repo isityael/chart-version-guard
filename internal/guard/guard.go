@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -22,6 +23,9 @@ type Options struct {
 	Repo string
 	Base string
 	Head string
+	// Ignore lists chart root globs (path.Match syntax, plus a trailing "/**"
+	// for a whole subtree) whose changes are not checked.
+	Ignore []string
 }
 
 type Result struct {
@@ -61,10 +65,16 @@ func Check(ctx context.Context, opts Options) (Result, error) {
 		return Result{}, err
 	}
 
+	for _, pattern := range opts.Ignore {
+		if _, err := path.Match(strings.TrimSuffix(pattern, "/**"), ""); err != nil {
+			return Result{}, fmt.Errorf("invalid ignore pattern %q: %w", pattern, err)
+		}
+	}
+
 	byChart := map[string][]string{}
 	for _, change := range changes {
 		chart, ok := owningChart(change.Path, roots)
-		if !ok || !isWatchedChartPath(chart, change.Path) {
+		if !ok || !isWatchedChartPath(chart, change.Path) || isIgnoredChart(chart, opts.Ignore) {
 			continue
 		}
 		byChart[chart] = append(byChart[chart], change.Path)
@@ -258,6 +268,26 @@ func isWatchedChartPath(chart, path string) bool {
 		return true
 	}
 	return strings.HasPrefix(base, "values-") && (strings.HasSuffix(base, ".yaml") || strings.HasSuffix(base, ".yml"))
+}
+
+// isIgnoredChart reports whether a chart root matches an ignore pattern.
+// A pattern ending in "/**" also matches every chart below that directory.
+func isIgnoredChart(chart string, patterns []string) bool {
+	for _, pattern := range patterns {
+		if prefix, ok := strings.CutSuffix(pattern, "/**"); ok {
+			// Match the chart root or any of its parent directories.
+			for dir := chart; dir != "." && dir != "/" && dir != ""; dir = path.Dir(dir) {
+				if matched, _ := path.Match(prefix, dir); matched {
+					return true
+				}
+			}
+			continue
+		}
+		if matched, _ := path.Match(pattern, chart); matched {
+			return true
+		}
+	}
+	return false
 }
 
 func isInfrastructureIgnored(path string) bool {

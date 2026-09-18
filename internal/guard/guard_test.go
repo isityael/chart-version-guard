@@ -3,6 +3,7 @@ package guard
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -221,4 +222,77 @@ func commitAll(t *testing.T, repo, message string) {
 func gitRev(t *testing.T, repo, rev string) string {
 	t.Helper()
 	return runGit(t, repo, "rev-parse", rev)
+}
+
+func TestCheckSkipsIgnoredCharts(t *testing.T) {
+	repo := newGitRepo(t)
+	writeFile(t, repo, "charts/latest/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: v0.0.0\n")
+	writeFile(t, repo, "charts/latest/app/values.yaml", "replicas: 1\n")
+	writeFile(t, repo, "charts/v1.2.3/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: 1.2.3\n")
+	writeFile(t, repo, "charts/v1.2.3/app/values.yaml", "replicas: 1\n")
+	writeFile(t, repo, "deploy/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: 0.1.0\n")
+	writeFile(t, repo, "deploy/app/values.yaml", "replicas: 1\n")
+	commitAll(t, repo, "initial")
+	base := gitRev(t, repo, "HEAD")
+
+	for _, file := range []string{"charts/latest/app/values.yaml", "charts/v1.2.3/app/values.yaml", "deploy/app/values.yaml"} {
+		writeFile(t, repo, file, "replicas: 2\n")
+	}
+	commitAll(t, repo, "values changes")
+
+	tests := []struct {
+		name   string
+		ignore []string
+		want   []string
+	}{
+		{name: "no ignores", want: []string{"charts/latest/app", "charts/v1.2.3/app", "deploy/app"}},
+		{name: "subtree", ignore: []string{"charts/**"}, want: []string{"deploy/app"}},
+		{name: "single level globs", ignore: []string{"charts/v*/app"}, want: []string{"charts/latest/app", "deploy/app"}},
+		{name: "exact root", ignore: []string{"deploy/app"}, want: []string{"charts/latest/app", "charts/v1.2.3/app"}},
+		{name: "everything", ignore: []string{"charts/**", "deploy/*"}, want: nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := Check(t.Context(), Options{Repo: repo, Base: base, Head: "HEAD", Ignore: tt.ignore})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []string
+			for _, failure := range result.Failures {
+				got = append(got, failure.Chart)
+			}
+			if strings.Join(got, ",") != strings.Join(tt.want, ",") {
+				t.Fatalf("failing charts = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCheckIgnoredNestedChartDoesNotFallBackToParent(t *testing.T) {
+	repo := newGitRepo(t)
+	writeFile(t, repo, "Chart.yaml", "apiVersion: v2\nname: root\nversion: 1.0.0\n")
+	writeFile(t, repo, "upstream/app/Chart.yaml", "apiVersion: v2\nname: app\nversion: 1.0.0\n")
+	writeFile(t, repo, "upstream/app/values.yaml", "replicas: 1\n")
+	commitAll(t, repo, "initial")
+	base := gitRev(t, repo, "HEAD")
+	writeFile(t, repo, "upstream/app/values.yaml", "replicas: 2\n")
+	commitAll(t, repo, "values change")
+
+	result, err := Check(t.Context(), Options{Repo: repo, Base: base, Head: "HEAD", Ignore: []string{"upstream/**"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.OK() {
+		t.Fatalf("expected ignored chart to pass, got %+v", result.Failures)
+	}
+}
+
+func TestCheckRejectsInvalidIgnorePattern(t *testing.T) {
+	repo := newGitRepo(t)
+	writeFile(t, repo, "app/Chart.yaml", "apiVersion: v2\nname: app\nversion: 1.0.0\n")
+	commitAll(t, repo, "initial")
+
+	if _, err := Check(t.Context(), Options{Repo: repo, Base: "HEAD", Head: "HEAD", Ignore: []string{"charts/[v"}}); err == nil {
+		t.Fatal("expected invalid ignore pattern error")
+	}
 }
