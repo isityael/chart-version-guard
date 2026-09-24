@@ -28,8 +28,8 @@ steps:
       DHI_PASSWORD:
         from_secret: dhi_password
     commands:
-      # CI_WORKSPACE only exists at step runtime; `${...}` in `environment:`
-      # expands to "" and would put the cache outside the workspace.
+      # CI_WORKSPACE only exists at step runtime, so it must be expanded here
+      # (escaped) rather than in environment:, where it would be empty.
       - export GOMODCACHE="$${CI_WORKSPACE}/.go-mod-cache"
       - mkdir -p "$${GOMODCACHE}"
       - go mod verify
