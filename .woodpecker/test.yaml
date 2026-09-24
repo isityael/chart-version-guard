@@ -27,13 +27,16 @@ steps:
         from_secret: dhi_username
       DHI_PASSWORD:
         from_secret: dhi_password
-      GOMODCACHE: ${CI_WORKSPACE}/.go-mod-cache
     commands:
+      # CI_WORKSPACE only exists at step runtime; `${...}` in `environment:`
+      # expands to "" and would put the cache outside the workspace.
+      - export GOMODCACHE="$${CI_WORKSPACE}/.go-mod-cache"
       - mkdir -p "$${GOMODCACHE}"
       - go mod verify
       - go test ./...
       - go vet ./...
-      - test -z "$(gofmt -l .)"
+      # Only check tracked sources; gofmt would otherwise walk the module cache.
+      - test -z "$(gofmt -l $(git ls-files '*.go'))"
 
   - name: rebuild-go-cache
     image: plugins/cache:1.10@sha256:f108c65d14edfba45f4c75fd606d4bf5886babc38ffdd6183a599234004edfc0
