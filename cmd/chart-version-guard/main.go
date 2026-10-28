@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"git.m0sh1.cc/m0sh1/chart-version-guard/internal/cli"
+	"git.m0sh1.cc/isityael/chart-version-guard/internal/cli"
 )
 
 func main() {

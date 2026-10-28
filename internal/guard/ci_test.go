@@ -5,7 +5,7 @@ import "testing"
 func TestWoodpeckerBaseForPullRequest(t *testing.T) {
 	env := map[string]string{
 		"CI_PIPELINE_EVENT":       "pull_request",
-		"CI_COMMIT_TARGET_BRANCH": "sm-moshi/main",
+		"CI_COMMIT_TARGET_BRANCH": "isityael/main",
 	}
 	base, enforce, err := ResolveWoodpeckerBase(env)
 	if err != nil {
@@ -14,8 +14,8 @@ func TestWoodpeckerBaseForPullRequest(t *testing.T) {
 	if !enforce {
 		t.Fatal("expected pull request enforcement")
 	}
-	if base != "origin/sm-moshi/main" {
-		t.Fatalf("base = %q, want origin/sm-moshi/main", base)
+	if base != "origin/isityael/main" {
+		t.Fatalf("base = %q, want origin/isityael/main", base)
 	}
 }
 
@@ -39,7 +39,7 @@ func TestWoodpeckerBaseForPushPrefersPreviousSHA(t *testing.T) {
 func TestWoodpeckerBaseForPushFallsBackToDefaultBranch(t *testing.T) {
 	env := map[string]string{
 		"CI_PIPELINE_EVENT":      "push",
-		"CI_REPO_DEFAULT_BRANCH": "sm-moshi/main",
+		"CI_REPO_DEFAULT_BRANCH": "isityael/main",
 	}
 	base, enforce, err := ResolveWoodpeckerBase(env)
 	if err != nil {
@@ -48,8 +48,8 @@ func TestWoodpeckerBaseForPushFallsBackToDefaultBranch(t *testing.T) {
 	if !enforce {
 		t.Fatal("expected push enforcement")
 	}
-	if base != "origin/sm-moshi/main" {
-		t.Fatalf("base = %q, want origin/sm-moshi/main", base)
+	if base != "origin/isityael/main" {
+		t.Fatalf("base = %q, want origin/isityael/main", base)
 	}
 }
 
@@ -86,13 +86,13 @@ func TestWoodpeckerTargetBranch(t *testing.T) {
 func TestWoodpeckerFetchTargetForPushDefaultBranch(t *testing.T) {
 	env := map[string]string{
 		"CI_PIPELINE_EVENT":      "push",
-		"CI_REPO_DEFAULT_BRANCH": "sm-moshi/main",
+		"CI_REPO_DEFAULT_BRANCH": "isityael/main",
 	}
 	target, ok := WoodpeckerFetchTarget(env)
 	if !ok {
 		t.Fatal("expected fetch target")
 	}
-	if target != "sm-moshi/main" {
-		t.Fatalf("target = %q, want sm-moshi/main", target)
+	if target != "isityael/main" {
+		t.Fatalf("target = %q, want isityael/main", target)
 	}
 }

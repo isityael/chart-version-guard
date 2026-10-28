@@ -56,7 +56,7 @@ Woodpecker publishes `ghcr.io/isityael/chart-version-guard` from this repository
 
 Forgejo is the source of truth:
 
-- `https://git.m0sh1.cc/m0sh1/chart-version-guard`
+- `https://git.m0sh1.cc/isityael/chart-version-guard`
 
 GitHub is maintained as a public push mirror:
 

@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"git.m0sh1.cc/m0sh1/chart-version-guard/internal/guard"
+	"git.m0sh1.cc/isityael/chart-version-guard/internal/guard"
 )
 
 type getenvFunc func(string) string
