@@ -3,24 +3,23 @@ when:
     ref: refs/tags/v*-ym.*
 
 steps:
-  - name: build-and-push-ghcr
+  - name: build-and-push-forgejo
     image: woodpeckerci/plugin-docker-buildx:6.1.2
     privileged: true
     settings:
-      registry: ghcr.io
-      repo: ghcr.io/isityael/chart-version-guard
+      registry: git.m0sh1.cc
+      repo: git.m0sh1.cc/isityael/chart-version-guard
       dockerfile: Dockerfile
       context: .
+      platforms: [linux/amd64]
       tags:
-        - "${CI_COMMIT_SHA:0:8}"
-        - main
         - "${CI_COMMIT_TAG}"
       logins:
-        - registry: ghcr.io
+        - registry: git.m0sh1.cc
           username:
-            from_secret: github_username
+            from_secret: forgejo_public_package_username
           password:
-            from_secret: github_token
+            from_secret: forgejo_public_package_token
         - registry: dhi.io
           username:
             from_secret: dhi_username
@@ -28,5 +27,5 @@ steps:
             from_secret: dhi_password
       provenance: mode=max
       buildkit_driveropt: network=host
-      cache_from: 'type=registry\,ref=ghcr.io/isityael/chart-version-guard:buildcache'
-      cache_to: 'type=registry,ref=ghcr.io/isityael/chart-version-guard:buildcache,mode=max,ignore-error=true'
+      cache_from: 'type=registry\,ref=git.m0sh1.cc/isityael/chart-version-guard:buildcache'
+      cache_to: 'type=registry,ref=git.m0sh1.cc/isityael/chart-version-guard:buildcache,mode=max,ignore-error=true'

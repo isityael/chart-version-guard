@@ -50,7 +50,7 @@ chart-version-guard check --ci woodpecker --repo . --ignore 'charts/**'
 
 ## CI Image
 
-Woodpecker publishes `ghcr.io/isityael/chart-version-guard` from this repository's `.woodpecker/release.yaml` pipeline.
+Woodpecker publishes `git.m0sh1.cc/isityael/chart-version-guard:<release-tag>` from this repository's `.woodpecker/release.yaml` pipeline. Only gated `v*-ym.*` release tags are published; consumers pin that version tag. The pipeline uses the shared `forgejo_public_package_username` and `forgejo_public_package_token` secrets for the public Forgejo registry.
 
 ## Repository
 
